@@ -1,0 +1,17 @@
+dist: trusty
+
+language: python
+python:
+  - "3.6"
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install ghostscript pdftk texlive-extra-utils
+
+install:
+  - pip install --upgrade pip
+  - pip install poetry
+  - poetry install
+
+script:
+  - poetry run python test.py
