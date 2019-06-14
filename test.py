@@ -65,7 +65,7 @@ class Tests(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(self.original_dir)
-        shutil.rmtree(self.test_dir)
+        #shutil.rmtree(self.test_dir)
 
     def archive_filename(self, name):
         archive_files = os.listdir(self.test_files_dir)
