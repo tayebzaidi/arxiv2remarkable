@@ -14,4 +14,4 @@ install:
   - poetry install
 
 script:
-  - poetry run python test.py
+  - poetry run python test.py -vv
