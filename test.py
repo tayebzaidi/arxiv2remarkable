@@ -81,7 +81,7 @@ class Tests(unittest.TestCase):
             fname = prov.run(url, filename=filename)
         self.assertEqual(os.path.basename(fname), exp_fname)
         self.assertTrue(
-            pdfdiff(fname, self.archive_filename(name), verbosity=0)
+            pdfdiff(fname, self.archive_filename(name), verbosity=2)
         )
 
     def test_arxiv(self):
