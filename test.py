@@ -52,6 +52,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("arxiv fsize = %i" % fsize)
         self.assertTrue(1054082 < fsize <= 1056082)
 
     def test_pmc(self):
@@ -63,6 +64,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("pmc fsize = %i" % fsize)
         self.assertTrue(376640 < fsize <= 378640)
 
     def test_acm(self):
@@ -72,6 +74,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("acm fsize = %i" % fsize)
         self.assertTrue(2349734 < fsize <= 2351734)
 
     def test_openreview(self):
@@ -81,6 +84,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("openreview fsize = %i" % fsize)
         self.assertTrue(1110316 < fsize <= 1112316)
 
     def test_local(self):
@@ -93,6 +97,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(local_filename)
         self.assertEqual("test_.pdf", os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("local fsize = %i" % fsize)
         self.assertTrue(5843 < fsize <= 7843)
 
     def test_pdfurl(self):
@@ -101,6 +106,7 @@ class Tests(unittest.TestCase):
         filename = prov.run(url, filename="test.pdf")
         self.assertEqual("test.pdf", os.path.basename(filename))
         fsize = os.path.getsize(filename)
+        print("pdfurl fsize = %i" % fsize)
         self.assertTrue(1828169 < fsize <= 1830169)
 
 
