@@ -37,6 +37,14 @@ python-versions = "*"
 version = "3.0.4"
 
 [[package]]
+category = "dev"
+description = "A simple script to test whether there is a significant difference between two PDFs using ImageMagick and pdftocairo."
+name = "diff-pdf-visually"
+optional = false
+python-versions = ">=3.0,<4.0"
+version = "1.3.1"
+
+[[package]]
 category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
@@ -91,7 +99,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
 version = "1.24.1"
 
 [metadata]
-content-hash = "fe817dba46a19b5c1e69f11adfcee75d6f6be2d51801a44f1dde2e58e6e868df"
+content-hash = "c8693dc12b81359eb91dfc6a1ef2bf901c174d9b48c1383ab5a4deb2f90e40ed"
 python-versions = "^3.5"
 
 [metadata.hashes]
@@ -99,6 +107,7 @@ beautifulsoup4 = ["034740f6cb549b4e932ae1ab975581e6103ac8f942200a0e9759065984391
 bs4 = ["36ecea1fd7cc5c0c6e4a1ff075df26d50da647b75376626cc186e2212886dd3a"]
 certifi = ["47f9c83ef4c0c621eaef743f133f09fa8a74a9b75f037e8624f83bd1b6626cb7", "993f830721089fef441cdfeb4b2c8c9df86f0c63239f06bd025a76a7daddb033"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
+diff-pdf-visually = ["5c5ad5a34097a378f39f833dd195b2f5d83aa185ca0374374bbb4fb082feb3e6", "7f16ad3891c080f16ff98d296c7011b2cee4f72d161dcf008203d51ad01cc00b"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
 pypdf2 = ["e28f902f2f0a1603ea95ebe21dff311ef09be3d0f0ef29a3e44a932729564385"]
 requests = ["502a824f31acdacb3a35b6690b5fbf0bc41d63a24a45c4004352b0242707598e", "7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b"]

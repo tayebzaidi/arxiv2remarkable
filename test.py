@@ -5,11 +5,14 @@ __author__ = "G.J.J. van den Burg"
 
 """Tests"""
 
-import unittest
-import tempfile
 import hashlib
-import shutil
 import os
+import shutil
+import tarfile
+import tempfile
+import unittest
+
+from diff_pdf_visually import pdfdiff
 
 from arxiv2remarkable import (
     ArxivProvider,
@@ -36,6 +39,13 @@ class Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.original_dir = os.getcwd()
+        cls.test_archive = os.path.abspath("./a2rtestfiles.tar.xz")
+        cls.test_files_dir = tempfile.mkdtemp()
+        os.chdir(cls.test_files_dir)
+
+        tar = tarfile.open(cls.test_archive)
+        tar.extractall()
+        tar.close()
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -45,15 +55,21 @@ class Tests(unittest.TestCase):
         os.chdir(self.original_dir)
         shutil.rmtree(self.test_dir)
 
+    def archive_filename(self, name):
+        archive_files = os.listdir(self.test_files_dir)
+        if not name + ".pdf" in archive_files:
+            raise ValueError("Archive doesn't have file for %s" % name)
+        return os.path.join(self.test_files_dir, name + ".pdf")
+
     def test_arxiv(self):
         prov = ArxivProvider(upload=False)
         url = "https://arxiv.org/abs/1811.11242v1"
         exp_filename = "Burg_Nazabal_Sutton_-_Wrangling_Messy_CSV_Files_by_Detecting_Row_and_Type_Patterns_2018.pdf"
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
-        fsize = os.path.getsize(filename)
-        print("arxiv fsize = %i" % fsize)
-        self.assertTrue(1054082 < fsize <= 1056082)
+        self.assertTrue(pdfdiff(filename, self.archive_filename("arxiv")))
+        # fsize = os.path.getsize(filename)
+        # self.assertTrue(1054082 < fsize <= 1056082)
 
     def test_pmc(self):
         prov = PMCProvider(upload=False)
@@ -64,7 +80,6 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
-        print("pmc fsize = %i" % fsize)
         self.assertTrue(376640 < fsize <= 378640)
 
     def test_acm(self):
@@ -74,7 +89,6 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
-        print("acm fsize = %i" % fsize)
         self.assertTrue(2349734 < fsize <= 2351734)
 
     def test_openreview(self):
@@ -84,7 +98,6 @@ class Tests(unittest.TestCase):
         filename = prov.run(url)
         self.assertEqual(exp_filename, os.path.basename(filename))
         fsize = os.path.getsize(filename)
-        print("openreview fsize = %i" % fsize)
         self.assertTrue(1110316 < fsize <= 1112316)
 
     def test_local(self):
@@ -97,7 +110,6 @@ class Tests(unittest.TestCase):
         filename = prov.run(local_filename)
         self.assertEqual("test_.pdf", os.path.basename(filename))
         fsize = os.path.getsize(filename)
-        print("local fsize = %i" % fsize)
         self.assertTrue(5843 < fsize <= 7843)
 
     def test_pdfurl(self):
@@ -106,7 +118,6 @@ class Tests(unittest.TestCase):
         filename = prov.run(url, filename="test.pdf")
         self.assertEqual("test.pdf", os.path.basename(filename))
         fsize = os.path.getsize(filename)
-        print("pdfurl fsize = %i" % fsize)
         self.assertTrue(1828169 < fsize <= 1830169)
 
 

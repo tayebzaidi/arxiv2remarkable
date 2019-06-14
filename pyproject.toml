@@ -13,6 +13,7 @@ PyPDF2 = "^1.26"
 titlecase = "^0.12.0"
 
 [tool.poetry.dev-dependencies]
+diff-pdf-visually = "^1.3"
 
 [build-system]
 requires = ["poetry>=0.12"]
