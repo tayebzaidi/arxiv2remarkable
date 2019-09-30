@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-__version__ = "0.3.4"
+__version__ = "0.3.3"
 __author__ = "G.J.J. van den Burg"
 
 """
@@ -30,6 +30,7 @@ import time
 import titlecase
 import unidecode
 import urllib.parse
+import numpy as np
 
 GITHUB_URL = "https://github.com/GjjvdBurg/arxiv2remarkable"
 
@@ -62,6 +63,7 @@ class Provider(metaclass=abc.ABCMeta):
         pdfcrop_path="pdfcrop",
         pdftk_path="pdftk",
         gs_path="gs",
+        overwrite = False,
     ):
         self.verbose = verbose
         self.upload = upload
@@ -73,6 +75,7 @@ class Provider(metaclass=abc.ABCMeta):
         self.pdfcrop_path = pdfcrop_path
         self.pdftk_path = pdftk_path
         self.gs_path = gs_path
+        self.overwrite = overwrite
 
         self.log("Starting %s" % type(self).__name__)
 
@@ -168,12 +171,19 @@ class Provider(metaclass=abc.ABCMeta):
         if not self.blank:
             return filepath
 
-        self.log("Adding blank pages")
+        self.log("Adding blank pages")    
         input_pdf = PyPDF2.PdfFileReader(filepath)
         output_pdf = PyPDF2.PdfFileWriter()
-        for page in input_pdf.pages:
+
+        #Get median of all page sizes use that for blank page size
+        width = np.median([float(input_pdf.getPage(i).mediaBox.getWidth()) for i in range(input_pdf.getNumPages())])
+        height = np.median([float(input_pdf.getPage(i).mediaBox.getHeight()) for i in range(input_pdf.getNumPages())])
+
+        num_pages = len(input_pdf.pages)
+        for i, page in enumerate(input_pdf.pages):
             output_pdf.addPage(page)
-            output_pdf.addBlankPage()
+            if i == num_pages-1:
+                output_pdf.addBlankPage(width=width, height=height)
 
         output_file = os.path.splitext(filepath)[0] + "-blank.pdf"
         with open(output_file, "wb") as fp:
@@ -225,8 +235,9 @@ class Provider(metaclass=abc.ABCMeta):
             [
                 self.gs_path,
                 "-sDEVICE=pdfwrite",
+                "-dNumRenderingThreads=4",
                 "-dCompatibilityLevel=1.4",
-                "-dPDFSETTINGS=/printer",
+                "-dPDFSETTINGS=/ebook",
                 "-dNOPAUSE",
                 "-dBATCH",
                 "-dQUIET",
@@ -237,6 +248,20 @@ class Provider(metaclass=abc.ABCMeta):
         if not status == 0:
             self.warn("Failed to shrink the pdf file")
             return filepath
+        return output_file
+
+    def add_metadata(self, filepath):
+        self.log("Adding metadata to indicate that pdf is cropped")
+        output_file = os.path.splitext(filepath)[0] + "-metadata_added.pdf"
+        input_pdf = PyPDF2.PdfFileReader(filepath)
+        output_pdf = PyPDF2.PdfFileWriter()
+
+        for page in input_pdf.pages:
+            output_pdf.addPage(page)
+        output_pdf.addMetadata({"/Cropped": "1"})
+
+        with open(output_file, "wb") as fp:
+            output_pdf.write(fp)
         return output_file
 
     def check_file_is_pdf(self, filename):
@@ -266,8 +291,8 @@ class Provider(metaclass=abc.ABCMeta):
             except requests.exceptions.ConnectionError:
                 error = True
             if error or not res.ok:
-                self.warn("Error getting url %s. Retrying in 5 seconds" % url)
                 time.sleep(5)
+                self.warn("Error getting url %s. Retrying in 5 seconds" % url)
                 continue
             self.log("Downloading url: %s" % url)
             return res.content
@@ -341,9 +366,17 @@ class Provider(metaclass=abc.ABCMeta):
 
     def run(self, src, filename=None):
         info = self.get_paper_info(src)
+        print(info)
         clean_filename = self.create_filename(info, filename)
+        print(clean_filename)
+        #Check if file is already cropped from metadata and if so exit
+        if info['filename']:
+            reader = PyPDF2.PdfFileReader(clean_filename)
+            pdf_info = reader.getDocumentInfo()
+            if '/Cropped' in pdf_info.keys():
+                print("PDF already cropped, exiting")
+                sys.exit()
         tmp_filename = "paper.pdf"
-
         self.initial_dir = os.getcwd()
         with tempfile.TemporaryDirectory(prefix="a2r_") as working_dir:
             os.chdir(working_dir)
@@ -356,6 +389,7 @@ class Provider(metaclass=abc.ABCMeta):
                 self.center_pdf,
                 self.blank_pdf,
                 self.shrink_pdf,
+                self.add_metadata,
             ]
             intermediate_fname = tmp_filename
             for op in ops:
@@ -371,9 +405,10 @@ class Provider(metaclass=abc.ABCMeta):
                 return self.upload_to_rm(clean_filename)
 
             target_path = os.path.join(self.initial_dir, clean_filename)
-            while os.path.exists(target_path):
-                base = os.path.splitext(target_path)[0]
-                target_path = base + "_.pdf"
+            if not self.overwrite:
+                while os.path.exists(target_path):
+                    base = os.path.splitext(target_path)[0]
+                    target_path = base + "_.pdf"
             shutil.move(clean_filename, target_path)
             return target_path
 
@@ -812,6 +847,12 @@ def parse_args():
     )
     parser.add_argument("--gs", help="path to gs executable", default="gs")
     parser.add_argument(
+        "-o",
+        "--overwrite",
+        help="Overwrite existing file in place",
+        action="store_true",
+    )
+    parser.add_argument(
         "input", help="URL to a paper or the path of a local PDF file"
     )
     return parser.parse_args()
@@ -837,6 +878,7 @@ def main():
         pdfcrop_path=args.pdfcrop,
         pdftk_path=args.pdftk,
         gs_path=args.gs,
+        overwrite=args.overwrite,
     )
 
     prov.run(args.input, filename=args.filename)
